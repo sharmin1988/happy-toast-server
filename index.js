@@ -15,7 +15,7 @@ app.get('/', (req, res) => {
 
 
 const uri = `mongodb+srv://${process.env.ADD_USER}:${process.env.ADD_PASSWORD}@cluster0.ex1o8oo.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri)
+// console.log(uri)
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 async function run() {
@@ -43,9 +43,48 @@ async function run() {
 
         // reviews API
 
+        // app.get('/reviews', async (req, res) => {
+        //     let query = {}
+        //     if (req.query.email) {
+        //         query = {
+        //             email: req.query.email
+        //         }
+        //     }          
+        //     const cursor = reviewCollection.find(query)
+        //     const reviews = await cursor.toArray()
+        //     res.send(reviews)
+        // })
+        app.get('/reviews', async (req, res) => {
+            console.log(req.query);
+            const query = {}
+            // if (req.query.service) {
+            //     query = {
+            //         service: 'Greeny Salads'
+            //     }
+            // }
+
+            const cursor = reviewCollection.find(query)
+            const reviews = await cursor.toArray()
+            res.send(reviews)
+        })
+
+        // app.get('/reviews', async(req, res) => {
+        //     const query = {}
+        //     const cursor = reviewCollection.find(query)
+        //     const reviews = await cursor.toArray()
+        //     res.send(reviews)
+        // })
+
         app.post('/reviews', async (req, res) => {
             const reviews = req.body;
             const result = await reviewCollection.insertOne(reviews)
+            res.send(result)
+        })
+
+        app.delete('/reviews/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await reviewCollection.deleteOne(query)
             res.send(result)
         })
 
