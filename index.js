@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt = require('jsonwebtoken')
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 5000
@@ -23,6 +24,12 @@ async function run() {
         const serviceCollection = client.db('happyToastDb').collection('services')
         const reviewCollection = client.db('happyToastDb').collection('reviews')
 
+        app.post('/jwt', (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_SECRET_TOKEN)
+            res.send({ token })
+        })
+
         app.get('/servicesHome', async (req, res) => {
             const query = {}
             const services = await serviceCollection.find(query).limit(3).toArray()
@@ -41,7 +48,7 @@ async function run() {
 
         })
 
-        // reviews API
+        // REVIEW api
         app.get('/reviews', async (req, res) => {
             let query = {}
             if (req.query.email) {
