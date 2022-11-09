@@ -19,6 +19,22 @@ const uri = `mongodb+srv://${process.env.ADD_USER}:${process.env.ADD_PASSWORD}@c
 // console.log(uri)
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+
+function verifyJwt(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send({ message: 'unauthorized access' })
+    }
+    const token = authHeader.split(' ')[1]
+    jwt.verify(token, process.env.ACCESS_SECRET_TOKEN, function (err, decoded) {
+        if (err) {
+            return res.status(401).send({ message: 'unauthorized access' })
+        }
+        req.decoded = decoded
+        next()
+    })
+}
+
 async function run() {
     try {
         const serviceCollection = client.db('happyToastDb').collection('services')
@@ -49,7 +65,11 @@ async function run() {
         })
 
         // REVIEW api
-        app.get('/reviews', async (req, res) => {
+        app.get('/reviews', verifyJwt, async (req, res) => {
+            const decoded = req.decoded
+            if(decoded.email !== req.query.email){
+                return  res.status(403).send({ message: 'Forbidden access' })
+            }
             let query = {}
             if (req.query.email) {
                 query = {
