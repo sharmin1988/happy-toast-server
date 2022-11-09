@@ -65,7 +65,13 @@ async function run() {
         })
 
         // REVIEW api
-        app.get('/reviews', verifyJwt, async (req, res) => {
+        app.get('/reviews', async(req, res) => {
+            const query = {}
+            const reviews = await reviewCollection.find(query).toArray()
+            res.send(reviews)
+        })
+        
+        app.get('/userReviews', verifyJwt, async (req, res) => {
             const decoded = req.decoded
             if(decoded.email !== req.query.email){
                 return  res.status(403).send({ message: 'Forbidden access' })
@@ -81,10 +87,25 @@ async function run() {
             res.send(reviews)
         })
 
+        
         app.post('/reviews', async (req, res) => {
             const reviews = req.body;
             const result = await reviewCollection.insertOne(reviews)
             res.send(result)
+        })
+
+        app.patch('/reviews/:id', async(req, res) => {
+            const id = req.params.id
+            const status = req.body.status
+            const query = { _id: ObjectId(id) }
+            const updatedDoc = {
+                $set:{
+                    status: status
+                }
+            }
+            const result = await reviewCollection.updateOne(query,updatedDoc)
+            res.send(result)
+
         })
 
         app.delete('/reviews/:id', async (req, res) => {
