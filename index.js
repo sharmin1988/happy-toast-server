@@ -46,6 +46,7 @@ async function run() {
             res.send({ token })
         })
 
+        //--------------- service API--------------------------
         app.get('/servicesHome', async (req, res) => {
             const query = {}
             const services = await serviceCollection.find(query).limit(3).toArray()
@@ -56,7 +57,7 @@ async function run() {
             const services = await serviceCollection.find(query).toArray()
             res.send(services)
         })
-        
+
         app.get('/services/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: ObjectId(id) }
@@ -71,7 +72,7 @@ async function run() {
             res.send(result)
         })
 
-        // REVIEW api
+        //-------------------- REVIEW api-------------------------
         app.get('/reviews', async (req, res) => {
             const query = {}
             const reviews = await reviewCollection.find(query).toArray()
