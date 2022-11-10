@@ -42,7 +42,7 @@ async function run() {
 
         app.post('/jwt', (req, res) => {
             const user = req.body;
-            const token = jwt.sign(user, process.env.ACCESS_SECRET_TOKEN)
+            const token = jwt.sign(user, process.env.ACCESS_SECRET_TOKEN, { expiresIn: '5h' })
             res.send({ token })
         })
 
@@ -56,6 +56,7 @@ async function run() {
             const services = await serviceCollection.find(query).toArray()
             res.send(services)
         })
+        
         app.get('/services/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: ObjectId(id) }
@@ -64,23 +65,35 @@ async function run() {
 
         })
 
-        app.post('/services', async(req, res) => {
+        app.post('/services', async (req, res) => {
             const service = req.body
             const result = await serviceCollection.insertOne(service)
             res.send(result)
         })
 
         // REVIEW api
-        app.get('/reviews', async(req, res) => {
+        app.get('/reviews', async (req, res) => {
             const query = {}
             const reviews = await reviewCollection.find(query).toArray()
             res.send(reviews)
         })
-        
+
+        app.get('/myReviews', async (req, res) => {
+            let query = {}
+            if (req.query._id) {
+                query = {
+                    serviceId: req.query._id
+                }
+            }
+            const cursor = reviewCollection.find(query)
+            const reviews = await cursor.toArray()
+            res.send(reviews)
+        })
+
         app.get('/userReviews', verifyJwt, async (req, res) => {
             const decoded = req.decoded
-            if(decoded.email !== req.query.email){
-                return  res.status(403).send({ message: 'Forbidden access' })
+            if (decoded.email !== req.query.email) {
+                return res.status(403).send({ message: 'Forbidden access' })
             }
             let query = {}
             if (req.query.email) {
@@ -93,23 +106,22 @@ async function run() {
             res.send(reviews)
         })
 
-        
         app.post('/reviews', async (req, res) => {
             const reviews = req.body;
             const result = await reviewCollection.insertOne(reviews)
             res.send(result)
         })
 
-        app.patch('/reviews/:id', async(req, res) => {
+        app.patch('/reviews/:id', async (req, res) => {
             const id = req.params.id
             const status = req.body.status
             const query = { _id: ObjectId(id) }
             const updatedDoc = {
-                $set:{
+                $set: {
                     status: status
                 }
             }
-            const result = await reviewCollection.updateOne(query,updatedDoc)
+            const result = await reviewCollection.updateOne(query, updatedDoc)
             res.send(result)
 
         })
